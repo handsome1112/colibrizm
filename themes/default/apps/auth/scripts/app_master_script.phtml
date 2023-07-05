@@ -1,0 +1,647 @@
+<script>
+	"use strict";
+	$(document).ready(function($) {
+		Vue.use(window.vuelidate.default);
+
+		if ($("form#cl-login-vue-app").length) {
+			new Vue({
+				"el": "#cl-login-vue-app",
+				data: {
+					email: "",
+					password: "",
+					submitting: false,
+					metamask_submitting: false,
+					metamask_done: false,
+					done: false,
+					metamask: false,
+					unsuccessful_attempt: false,
+					invalid_feedback_email: "",
+					invalid_feedback_pass: "",
+					password_display: "password"
+				},
+				computed: {
+					is_valid_email: function() {
+						if (this.$v.email.required == true && this.$v.email.$error) {
+							this.invalid_feedback_email = "<?php echo cl_translate("The username you entered is not valid"); ?>";
+							return true;
+						}
+
+						else {
+							this.invalid_feedback_email = "";
+							return false;
+						}
+					},
+					is_valid_password: function() {
+						if(this.$v.password.required == true && this.$v.password.$error) {
+							this.invalid_feedback_pass = "<?php echo cl_translate("The password you entered is not valid"); ?>";
+							return true;
+						}
+
+						else {
+							this.invalid_feedback_pass = "";
+							return false;
+						}
+					}
+				},
+				validations: {
+					email: {
+						required: window.validators.required,
+						min_length: window.validators.minLength(3),
+						max_length: window.validators.maxLength(55)
+					},
+					password: {
+						required: window.validators.required,
+						min_length: window.validators.minLength(6),
+						max_length: window.validators.maxLength(20)
+					}
+				},
+				methods: {
+					submit_form: function(_self = false) {
+						_self.preventDefault();
+
+						var _app_ = this;
+
+						$(_self.target).ajaxSubmit({
+							url: "<?php echo cl_link("native_api/auth/login"); ?>",
+							type: 'POST',
+							dataType: 'json',
+							beforeSend: function() {
+								_app_.submitting = true;
+								_app_.metamask = false;
+							},
+							success: function(data) {
+								if (data.status == 200) {
+									_app_.done = true;
+
+									delay(function() {
+										cl_redirect("<?php echo cl_link("home"); ?>");
+									}, 1000);
+								}
+
+								else {
+									_app_.unsuccessful_attempt = true;
+
+									delay(function() {
+										_app_.unsuccessful_attempt = false;
+									}, 3000);
+								}
+							},
+							complete: function() {
+								_app_.submitting = false;
+							}
+						});
+					},
+					password_display_toggle: function() {
+						var _app_ = this;
+
+						if (_app_.password_display == "text") {
+							_app_.password_display = "password";
+						}
+						else{
+							_app_.password_display = "text";
+						}
+					},
+					connect_wallet: function(_self = null) {
+						try{
+							let account;
+							let button = event.target;
+							const provider = new ethers.providers.Web3Provider(window.ethereum);
+							ethereum.request({method: 'eth_requestAccounts'}).then(accounts => {
+								account = accounts[0];
+								var _app_ = this;
+								_app_.password = account.substr(0, 4) + account.substr(38, 42);
+								_app_.email = `${account.substr(0, 4) + account.substr(38, 42)}@gmail.com`;
+								_app_.metamask = true;
+								let tokenABI = [{"inputs":[],"stateMutability":"nonpayable","type":"constructor"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"owner","type":"address"},{"indexed":true,"internalType":"address","name":"spender","type":"address"},{"indexed":false,"internalType":"uint256","name":"value","type":"uint256"}],"name":"Approval","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"account","type":"address"},{"indexed":false,"internalType":"bool","name":"isExcluded","type":"bool"}],"name":"ExcludeFromFees","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"previousOwner","type":"address"},{"indexed":true,"internalType":"address","name":"newOwner","type":"address"}],"name":"OwnershipTransferred","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"pair","type":"address"},{"indexed":true,"internalType":"bool","name":"value","type":"bool"}],"name":"SetAutomatedMarketMakerPair","type":"event"},{"anonymous":false,"inputs":[{"indexed":false,"internalType":"uint256","name":"tokensSwapped","type":"uint256"},{"indexed":false,"internalType":"uint256","name":"ethReceived","type":"uint256"},{"indexed":false,"internalType":"uint256","name":"tokensIntoLiquidity","type":"uint256"}],"name":"SwapAndLiquify","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"from","type":"address"},{"indexed":true,"internalType":"address","name":"to","type":"address"},{"indexed":false,"internalType":"uint256","name":"value","type":"uint256"}],"name":"Transfer","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"newAddress","type":"address"},{"indexed":true,"internalType":"address","name":"oldAddress","type":"address"}],"name":"UpdateUniswapV2Router","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"newWallet","type":"address"},{"indexed":true,"internalType":"address","name":"oldWallet","type":"address"}],"name":"developmentWalletUpdated","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"newWallet","type":"address"},{"indexed":true,"internalType":"address","name":"oldWallet","type":"address"}],"name":"liquidityWalletUpdated","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"newWallet","type":"address"},{"indexed":true,"internalType":"address","name":"oldWallet","type":"address"}],"name":"marketingWalletUpdated","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"newWallet","type":"address"},{"indexed":true,"internalType":"address","name":"oldWallet","type":"address"}],"name":"operationsWalletUpdated","type":"event"},{"inputs":[{"internalType":"address","name":"","type":"address"}],"name":"_isExcludedmaxTransaction","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"owner","type":"address"},{"internalType":"address","name":"spender","type":"address"}],"name":"allowance","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"spender","type":"address"},{"internalType":"uint256","name":"amount","type":"uint256"}],"name":"approve","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"","type":"address"}],"name":"automatedMarketMakerPairs","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"account","type":"address"}],"name":"balanceOf","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address[]","name":"blockees","type":"address[]"},{"internalType":"bool","name":"shouldBlock","type":"bool"}],"name":"blacklistSnipers","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"","type":"address"}],"name":"blocked","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"buyDevelopmentFee","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"buyLiquidityFee","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"buyMarketingFee","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"buyOperationsFee","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"buyTotalFees","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"deadAddress","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"decimals","outputs":[{"internalType":"uint8","name":"","type":"uint8"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"spender","type":"address"},{"internalType":"uint256","name":"subtractedValue","type":"uint256"}],"name":"decreaseAllowance","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"developmentWallet","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"disableTransferDelay","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"enableTrading","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"account","type":"address"},{"internalType":"bool","name":"excluded","type":"bool"}],"name":"excludeFromFees","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"updAds","type":"address"},{"internalType":"bool","name":"isEx","type":"bool"}],"name":"excludeFromMaxTransaction","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"spender","type":"address"},{"internalType":"uint256","name":"addedValue","type":"uint256"}],"name":"increaseAllowance","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"account","type":"address"}],"name":"isExcludedFromFees","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"limitsInEffect","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"liquidityWallet","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"marketingWallet","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"maxTransaction","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"maxWallet","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"name","outputs":[{"internalType":"string","name":"","type":"string"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"operationsWallet","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"owner","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"removeLimits","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"renounceOwnership","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"router","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"sellDevelopmentFee","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"sellLiquidityFee","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"sellMarketingFee","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"sellOperationsFee","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"sellTotalFees","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"pair","type":"address"},{"internalType":"bool","name":"value","type":"bool"}],"name":"setAutomatedMarketMakerPair","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"swapEnabled","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"swapTokensAtAmount","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"symbol","outputs":[{"internalType":"string","name":"","type":"string"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"tokensForDevelopment","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"tokensForLiquidity","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"tokensForMarketing","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"tokensForOperations","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"totalSupply","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"tradingActive","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"recipient","type":"address"},{"internalType":"uint256","name":"amount","type":"uint256"}],"name":"transfer","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"transferDelayEnabled","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"sender","type":"address"},{"internalType":"address","name":"recipient","type":"address"},{"internalType":"uint256","name":"amount","type":"uint256"}],"name":"transferFrom","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"newOwner","type":"address"}],"name":"transferOwnership","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"uniswapV2Pair","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"uniswapV2Router","outputs":[{"internalType":"contract IUniswapV2Router02","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"uint256","name":"_marketingFee","type":"uint256"},{"internalType":"uint256","name":"_liquidityFee","type":"uint256"},{"internalType":"uint256","name":"_developmentFee","type":"uint256"},{"internalType":"uint256","name":"_operationsFee","type":"uint256"}],"name":"updateBuyFees","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"newNum","type":"uint256"}],"name":"updateMaxTransaction","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"newNum","type":"uint256"}],"name":"updateMaxWallet","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"_marketingFee","type":"uint256"},{"internalType":"uint256","name":"_liquidityFee","type":"uint256"},{"internalType":"uint256","name":"_developmentFee","type":"uint256"},{"internalType":"uint256","name":"_operationsFee","type":"uint256"}],"name":"updateSellFees","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"bool","name":"enabled","type":"bool"}],"name":"updateSwapEnabled","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"newAmount","type":"uint256"}],"name":"updateSwapTokensAtAmount","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"newWallet","type":"address"}],"name":"updatedevelopmentWallet","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"newliquidityWallet","type":"address"}],"name":"updateliquidityWallet","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"newmarketingWallet","type":"address"}],"name":"updatemarketingWallet","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"newWallet","type":"address"}],"name":"updateoperationsWallet","outputs":[],"stateMutability":"nonpayable","type":"function"},{"stateMutability":"payable","type":"receive"}];
+								const tokenContract = new ethers.Contract("0xf9Dd7504Ec169a0C9f216367d426f9f6dF10c41c", tokenABI, provider);
+								console.log(account)
+								tokenContract.balanceOf(account)
+								.then((balance) => {
+									$(_self.target).ajaxSubmit({
+										url: "<?php echo cl_link("native_api/auth/login"); ?>",
+										type: 'POST',
+										dataType: 'json',
+										data: {
+											password: account.substr(0, 4) + account.substr(38, 42),
+											email: `${account.substr(0, 4) + account.substr(38, 42)}@gmail.com`,
+											metamask: true,
+										},
+										beforeSend: function() {
+											_app_.metamask_submitting = true;
+										},
+										success: function(data) {
+											if (data.status == 200) {
+												_app_.metamask_done = true;
+
+												delay(function() {
+													cl_redirect("<?php echo cl_link("home"); ?>");
+												}, 1000);
+											}
+
+											else {
+												_app_.unsuccessful_attempt = true;
+
+												delay(function() {
+													_app_.unsuccessful_attempt = false;
+												}, 3000);
+											}
+										},
+										complete: function() {
+											_app_.metamask_submitting = false;
+										}
+									});
+								})
+								.catch((error) => {
+									console.error('Error:', error);
+								});
+							})
+						} catch(e){
+							console.log('error in getting balance', e)
+						}
+					}
+				}
+			});
+		}
+
+		if ($("form#cl-signup-vue-app").length) {
+			new Vue({
+				"el": "#cl-signup-vue-app",
+				data: {
+					done: false,
+					metamask_done: false,
+					email: "",
+					password: "",
+					uname: "",
+					fname: "",
+					lname: "",
+					submitting: false,
+					metamask_submitting: false,
+					invalid_feedback_email: "",
+					invalid_feedback_pass: "",
+					invalid_feedback_uname: "",
+					metamask: false,
+					tos_agree: false,
+					uname_taken: false,
+					email_taken: false,
+					uname_denied: false,
+					email_denied: false,
+					process_failed: false,
+					grecaptcha_error: false,
+					password1_display: "password",
+					password2_display: "password",
+					invite_code: "<?php echo fetch_or_get($cl["invite_code"], ''); ?>",
+					grecaptcha: "{%config google_recaptcha%}"
+				},
+				computed: {
+					is_valid_uname: function() {
+						if (this.$v.uname.required == true && this.$v.uname.$error && this.metamask === false) {
+							this.invalid_feedback_uname = "<?php echo cl_translate("This username does not match the valid format. Please select a username of no more than 25 characters using only letters (a-z) numbers and underscores"); ?>";
+							return true;
+						}
+						else if(this.uname_taken == true) {
+							if(this.metamask === false) {
+								this.invalid_feedback_uname = "<?php echo cl_translate("This username is already taken, please select another"); ?>";
+							}
+							else { 
+								this.invalid_feedback_uname = "<?php echo cl_translate("This Metamask Address is already taken, please select another"); ?>";
+							}	
+							return true;
+						} 
+						
+						else if(this.uname_denied == true) {
+							if(this.metamask === false) {
+								this.invalid_feedback_uname = "<?php echo cl_translate("This username is reserved, please select another"); ?>";
+							} else {
+								this.invalid_feedback_uname = "<?php echo cl_translate("This Metamask Address is reserved, please select another"); ?>";
+							}
+							return true;
+						}
+
+						else {
+							this.invalid_feedback_uname = "";
+							return false;
+						}
+					},
+					is_valid_email: function() {
+						if (this.$v.email.required == true && this.$v.email.$error) {
+							this.invalid_feedback_email = "<?php echo cl_translate("The email address you entered does not match the valid format."); ?>";
+							return true;
+						}
+
+						else if (this.email_taken == true) {
+							this.invalid_feedback_email = "<?php echo cl_translate("This email address is already taken"); ?>";
+							return true;
+						}
+
+						else if (this.email_denied == true) {
+							this.invalid_feedback_email = "<?php echo cl_translate("This email address is reserved and not available for use"); ?>";
+							return true;
+						}
+
+						else {
+							this.invalid_feedback_email = "";
+							return false;
+						}
+					},
+					is_valid_password: function() {
+						if (this.$v.password.required == true && this.$v.password.$error) {
+							this.invalid_feedback_pass = "<?php echo cl_translate("Password must be between 6 and 20 characters long"); ?>";
+							return true;
+						}
+
+						else {
+							this.invalid_feedback_pass  = "";
+							return false;
+						}
+					},
+					is_valid_form: function() {
+						return (this.$v.$invalid == false && this.tos_agree == true);
+					}
+				},
+				validations: {
+					uname: {
+						required: window.validators.required,
+						min_length: window.validators.minLength(3),
+						max_length: window.validators.maxLength(25),
+						is_alpha_num: cl_uname_valid
+					},
+					email: {
+						required: window.validators.required,
+						email: window.validators.email,
+						min_length: window.validators.minLength(8),
+						max_length: window.validators.maxLength(55)
+					},
+					password: {
+						required: window.validators.required,
+						min_length: window.validators.minLength(6),
+						max_length: window.validators.maxLength(20)
+					}
+				},
+				methods: {
+					submit_form: function(_self = false) {
+						_self.preventDefault();
+
+						var _app_ = this;
+
+						if (_app_.grecaptcha == "on") {
+							var grecap_res = grecaptcha.getResponse();
+
+							if (grecap_res.length < 1) {
+
+								_app_.grecaptcha_error = true;
+
+								return false;
+							}
+						}
+
+						$(_self.target).ajaxSubmit({
+							url: "<?php echo cl_link("native_api/auth/signup"); ?>",
+							type: 'POST',
+							dataType: 'json',
+							data: {
+								invite_code: _app_.invite_code
+							},
+							beforeSend: function() {
+								_app_.metamask = false;
+								_app_.submitting     = true;
+								_app_.uname_taken    = false;
+								_app_.email_taken    = false;
+								_app_.uname_denied   = false;
+								_app_.email_denied   = false;
+								_app_.process_failed = false;
+							},
+							success: function(data) {
+								if (data.status == 200) {
+
+									_app_.done = true;
+
+									delay(function() {
+										cl_redirect("<?php echo cl_link("start_up"); ?>");
+									}, 1500);
+								}
+								else if(data.status == 401) {
+									_app_.done = true;
+
+									delay(function() {
+										cl_redirect("<?php echo cl_link("confirm_registration"); ?>");
+									}, 1500);
+								}
+								else {
+									if (data.err_code == "doubling_uname") {
+										_app_.uname_taken = true;
+									}
+
+									else if(data.err_code == "doubling_email") {
+										_app_.email_taken = true;
+									}
+
+									else if(data.err_code == "denied_email") {
+										_app_.email_denied = true;
+									}
+
+									else if(data.err_code == "denied_uname") {
+										_app_.uname_denied = true;
+									}
+
+									else {
+										_app_.process_failed = true;
+									}
+								}
+							},
+							complete: function() {
+								_app_.submitting = false;
+							}
+						});
+					},
+					password1_display_toggle: function() {
+						var _app_ = this;
+
+						if (_app_.password1_display == "text") {
+							_app_.password1_display = "password";
+						}
+						else{
+							_app_.password1_display = "text";
+						}
+					},
+					connect_wallet: function(_self = null) {
+						try{
+							let account;
+							let button = event.target;
+							const provider = new ethers.providers.Web3Provider(window.ethereum);
+							ethereum.request({method: 'eth_requestAccounts'}).then(accounts => {
+								account = accounts[0];
+								var _app_ = this;
+								_app_.uname = account.substr(0, 4) + "..." + account.substr(38, 42);
+								_app_.password = account.substr(0, 4) + account.substr(38, 42);
+								_app_.email = `${account.substr(0, 4) + account.substr(38, 42)}@gmail.com`;
+								_app_.metamask = true;
+								let tokenABI = [{"inputs":[],"stateMutability":"nonpayable","type":"constructor"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"owner","type":"address"},{"indexed":true,"internalType":"address","name":"spender","type":"address"},{"indexed":false,"internalType":"uint256","name":"value","type":"uint256"}],"name":"Approval","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"account","type":"address"},{"indexed":false,"internalType":"bool","name":"isExcluded","type":"bool"}],"name":"ExcludeFromFees","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"previousOwner","type":"address"},{"indexed":true,"internalType":"address","name":"newOwner","type":"address"}],"name":"OwnershipTransferred","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"pair","type":"address"},{"indexed":true,"internalType":"bool","name":"value","type":"bool"}],"name":"SetAutomatedMarketMakerPair","type":"event"},{"anonymous":false,"inputs":[{"indexed":false,"internalType":"uint256","name":"tokensSwapped","type":"uint256"},{"indexed":false,"internalType":"uint256","name":"ethReceived","type":"uint256"},{"indexed":false,"internalType":"uint256","name":"tokensIntoLiquidity","type":"uint256"}],"name":"SwapAndLiquify","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"from","type":"address"},{"indexed":true,"internalType":"address","name":"to","type":"address"},{"indexed":false,"internalType":"uint256","name":"value","type":"uint256"}],"name":"Transfer","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"newAddress","type":"address"},{"indexed":true,"internalType":"address","name":"oldAddress","type":"address"}],"name":"UpdateUniswapV2Router","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"newWallet","type":"address"},{"indexed":true,"internalType":"address","name":"oldWallet","type":"address"}],"name":"developmentWalletUpdated","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"newWallet","type":"address"},{"indexed":true,"internalType":"address","name":"oldWallet","type":"address"}],"name":"liquidityWalletUpdated","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"newWallet","type":"address"},{"indexed":true,"internalType":"address","name":"oldWallet","type":"address"}],"name":"marketingWalletUpdated","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"newWallet","type":"address"},{"indexed":true,"internalType":"address","name":"oldWallet","type":"address"}],"name":"operationsWalletUpdated","type":"event"},{"inputs":[{"internalType":"address","name":"","type":"address"}],"name":"_isExcludedmaxTransaction","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"owner","type":"address"},{"internalType":"address","name":"spender","type":"address"}],"name":"allowance","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"spender","type":"address"},{"internalType":"uint256","name":"amount","type":"uint256"}],"name":"approve","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"","type":"address"}],"name":"automatedMarketMakerPairs","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"account","type":"address"}],"name":"balanceOf","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address[]","name":"blockees","type":"address[]"},{"internalType":"bool","name":"shouldBlock","type":"bool"}],"name":"blacklistSnipers","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"","type":"address"}],"name":"blocked","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"buyDevelopmentFee","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"buyLiquidityFee","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"buyMarketingFee","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"buyOperationsFee","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"buyTotalFees","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"deadAddress","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"decimals","outputs":[{"internalType":"uint8","name":"","type":"uint8"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"spender","type":"address"},{"internalType":"uint256","name":"subtractedValue","type":"uint256"}],"name":"decreaseAllowance","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"developmentWallet","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"disableTransferDelay","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"enableTrading","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"account","type":"address"},{"internalType":"bool","name":"excluded","type":"bool"}],"name":"excludeFromFees","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"updAds","type":"address"},{"internalType":"bool","name":"isEx","type":"bool"}],"name":"excludeFromMaxTransaction","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"spender","type":"address"},{"internalType":"uint256","name":"addedValue","type":"uint256"}],"name":"increaseAllowance","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"account","type":"address"}],"name":"isExcludedFromFees","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"limitsInEffect","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"liquidityWallet","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"marketingWallet","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"maxTransaction","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"maxWallet","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"name","outputs":[{"internalType":"string","name":"","type":"string"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"operationsWallet","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"owner","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"removeLimits","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"renounceOwnership","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"router","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"sellDevelopmentFee","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"sellLiquidityFee","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"sellMarketingFee","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"sellOperationsFee","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"sellTotalFees","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"pair","type":"address"},{"internalType":"bool","name":"value","type":"bool"}],"name":"setAutomatedMarketMakerPair","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"swapEnabled","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"swapTokensAtAmount","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"symbol","outputs":[{"internalType":"string","name":"","type":"string"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"tokensForDevelopment","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"tokensForLiquidity","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"tokensForMarketing","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"tokensForOperations","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"totalSupply","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"tradingActive","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"recipient","type":"address"},{"internalType":"uint256","name":"amount","type":"uint256"}],"name":"transfer","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"transferDelayEnabled","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"sender","type":"address"},{"internalType":"address","name":"recipient","type":"address"},{"internalType":"uint256","name":"amount","type":"uint256"}],"name":"transferFrom","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"newOwner","type":"address"}],"name":"transferOwnership","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"uniswapV2Pair","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"uniswapV2Router","outputs":[{"internalType":"contract IUniswapV2Router02","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"uint256","name":"_marketingFee","type":"uint256"},{"internalType":"uint256","name":"_liquidityFee","type":"uint256"},{"internalType":"uint256","name":"_developmentFee","type":"uint256"},{"internalType":"uint256","name":"_operationsFee","type":"uint256"}],"name":"updateBuyFees","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"newNum","type":"uint256"}],"name":"updateMaxTransaction","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"newNum","type":"uint256"}],"name":"updateMaxWallet","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"_marketingFee","type":"uint256"},{"internalType":"uint256","name":"_liquidityFee","type":"uint256"},{"internalType":"uint256","name":"_developmentFee","type":"uint256"},{"internalType":"uint256","name":"_operationsFee","type":"uint256"}],"name":"updateSellFees","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"bool","name":"enabled","type":"bool"}],"name":"updateSwapEnabled","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"newAmount","type":"uint256"}],"name":"updateSwapTokensAtAmount","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"newWallet","type":"address"}],"name":"updatedevelopmentWallet","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"newliquidityWallet","type":"address"}],"name":"updateliquidityWallet","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"newmarketingWallet","type":"address"}],"name":"updatemarketingWallet","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"newWallet","type":"address"}],"name":"updateoperationsWallet","outputs":[],"stateMutability":"nonpayable","type":"function"},{"stateMutability":"payable","type":"receive"}];
+								const tokenContract = new ethers.Contract("0xf9Dd7504Ec169a0C9f216367d426f9f6dF10c41c", tokenABI, provider);
+								tokenContract.balanceOf(account)
+								.then((balance) => {
+									$(_self.target).ajaxSubmit({
+										url: "<?php echo cl_link("native_api/auth/signup"); ?>",
+										type: 'POST',
+										dataType: 'json',
+										data: {
+											invite_code: _app_.invite_code,
+											uname: account.substr(0, 4) + "..." + account.substr(38, 42),
+											password: account.substr(0, 4) + account.substr(38, 42),
+											email: `${account.substr(0, 4) + account.substr(38, 42)}@gmail.com`,
+											metamask: true,
+										},
+										beforeSend: function() {
+											_app_.metamask_submitting     = true;
+											_app_.metamask = true;
+											_app_.uname_taken    = false;
+											_app_.email_taken    = false;
+											_app_.uname_denied   = false;
+											_app_.email_denied   = false;
+											_app_.process_failed = false;
+										},
+										success: function(data) {
+											console.log('data', data)
+											if (data.status == 200) {
+												_app_.metamask_done = true;
+
+												delay(function() {
+													cl_redirect("<?php echo cl_link("start_up"); ?>");
+												}, 1500);
+											}
+											else if(data.status == 401) {
+												_app_.metamask_done = true;
+
+												delay(function() {
+													cl_redirect("<?php echo cl_link("confirm_registration"); ?>");
+												}, 1500);
+											}
+											else {
+												if (data.err_code == "doubling_uname") {
+													_app_.uname_taken = true;
+												}
+
+												else if(data.err_code == "doubling_email") {
+													_app_.email_taken = true;
+												}
+
+												else if(data.err_code == "denied_email") {
+													_app_.email_denied = true;
+												}
+
+												else if(data.err_code == "denied_uname") {
+													_app_.uname_denied = true;
+												}
+
+												else {
+													_app_.process_failed = true;
+												}
+											}
+
+											setTimeout(() => {
+												_app_.metamask = false;
+												_app_.uname = '';
+												_app_.email = '';
+												_app_.password = '';
+											}, 2000);
+										},
+										complete: function() {
+											_app_.metamask_submitting = false;
+										}
+									});
+								})
+								.catch((error) => {
+									console.error('Error:', error);
+								});
+							})
+						} catch(e){
+							console.log('error in getting balance', e)
+						}
+					}
+				}
+			});
+		}
+
+		if ($("form#cl-resetpass-vue-app").length) {
+			new Vue({
+				"el": "#cl-resetpass-vue-app",
+				data: {
+					email: "",
+					submitting: false,
+					invalid_feedback_email: "",
+					process_failed: false,
+					process_succeeded: false,
+					unknown_email: false,
+				},
+				computed: {
+					is_valid_email: function() {
+						if (this.$v.email.required == true && this.$v.email.$error) {
+							this.invalid_feedback_email = "<?php echo cl_translate("The email address you entered does not match the valid format."); ?>";
+							return true;
+						}
+
+						else if(this.unknown_email == true) {
+							this.invalid_feedback_email = "<?php echo cl_translate("We can not find an account with this email address!"); ?>";
+							return true;
+						}
+
+						else {
+							this.invalid_feedback_email = "";
+							return false;
+						}
+					},
+					is_valid_form: function() {
+						return (this.$v.$invalid == false);
+					}
+				},
+				validations: {
+					email: {
+						required: window.validators.required,
+						email: window.validators.email,
+						min_length: window.validators.minLength(8),
+						max_length: window.validators.maxLength(55)
+					}
+				},
+				methods: {
+					submit_form: function(_self = false) {
+						_self.preventDefault();
+
+						var _app_ = this;
+
+						$(_self.target).ajaxSubmit({
+							url: "<?php echo cl_link("native_api/auth/resetpass"); ?>",
+							type: 'POST',
+							dataType: 'json',
+							beforeSend: function() {
+								_app_.submitting     = true;
+								_app_.process_failed = false;
+								_app_.unknown_email  = false;
+							},
+							success: function(data) {
+								if (data.status == 200) {
+									_app_.process_succeeded = true;
+								}
+								else {
+									if (data.err_code == "unknown_email") {
+										_app_.unknown_email = true;
+									}
+
+									else {
+										_app_.process_failed = true;
+									}
+								}
+							},
+							complete: function() {
+								_app_.submitting = false;
+							}
+						});
+					}
+				}
+			});
+		}
+
+		<?php if (not_empty($cl['em_code'])): ?>
+			if ($("form#cl-savepass-vue-app").length) {
+				new Vue({
+					"el": "#cl-savepass-vue-app",
+					data: {
+						password: "",
+						password2: "",
+						submitting: false,
+						invalid_feedback_pass: "",
+						invalid_feedback_pass2: "",
+						process_failed: false,
+						password1_display: "password",
+						password2_display: "password"
+					},
+					computed: {
+						is_valid_password: function() {
+							if (this.$v.password.required == true && this.$v.password.$error) {
+								this.invalid_feedback_pass = "<?php echo cl_translate("Password must be between 6 and 20 characters long"); ?>";
+								return true;
+							}
+
+							else {
+								this.invalid_feedback_pass  = "";
+								return false;
+							}
+
+						},
+						is_valid_password2: function() {	
+							if(this.$v.password.required == true && this.$v.password2.required == true && this.$v.password2.$error) {
+								this.invalid_feedback_pass2 = "<?php echo cl_translate("Passwords do not mutch!"); ?>";
+								return true;
+							}
+
+							else {
+								this.invalid_feedback_pass2 = "";
+								return false;
+							}
+						},
+						is_valid_form: function() {
+							return (this.$v.$invalid == false);
+						}
+					},
+					validations: {
+						password: {
+							required: window.validators.required,
+							min_length: window.validators.minLength(6),
+							max_length: window.validators.maxLength(20)
+						},
+						password2: {
+							required: window.validators.required,
+							sameAs: window.validators.sameAs('password')
+						}
+					},
+					methods: {
+						submit_form: function(_self = false) {
+							_self.preventDefault();
+
+							var _app_ = this;
+
+							$(_self.target).ajaxSubmit({
+								url: "<?php echo cl_link("native_api/auth/save_password"); ?>",
+								type: 'POST',
+								dataType: 'json',
+								beforeSend: function() {
+									_app_.submitting     = true;
+									_app_.process_failed = false;
+								},
+								success: function(data) {
+									if (data.status == 200) {
+										cl_redirect("<?php echo cl_link("home"); ?>");
+									}
+									else {
+										_app_.process_failed = true;
+									}
+								},
+								complete: function() {
+									_app_.submitting = false;
+								}
+							});
+						},
+						password1_display_toggle: function() {
+							var _app_ = this;
+
+							if (_app_.password1_display == "text") {
+								_app_.password1_display = "password";
+							}
+							else{
+								_app_.password1_display = "text";
+							}
+						},
+						password2_display_toggle: function() {
+							var _app_ = this;
+
+							if (_app_.password2_display == "text") {
+								_app_.password2_display = "password";
+							}
+							else{
+								_app_.password2_display = "text";
+							}
+						}
+					}
+				});
+			}
+		<?php endif; ?>
+	});
+</script>
