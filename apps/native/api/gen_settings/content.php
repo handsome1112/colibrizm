@@ -17,8 +17,6 @@ if (empty($cl['is_logged'])) {
 	);
 }
 else {
-	$_COOKIE['wallet_address'] = '';
-	$_COOKIE['balance'] = '0';
 	$valid_error      = false;
 	$user_data_fields = array(
 		'fname'       => fetch_or_get($_POST['first_name'], null),

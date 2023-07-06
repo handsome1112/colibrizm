@@ -11,17 +11,17 @@
 
 
 # MySQL db host name
-$sql_db_host = "127.0.0.1";
+$sql_db_host = "localhost";
 
 # MySQL db User
-$sql_db_user = "meetahoe_pepe";
+$sql_db_user = "root";
 
 # MySQL db Password
-$sql_db_pass = "Mariana69!";
+$sql_db_pass = "";
 
 # MySQL db Name
-$sql_db_name = "meetahoe_betapepe";
+$sql_db_name = "colibrism_db";
 
 # Site URL
-$site_url    = "https://beta.pepesocialnetwork.com"; // E.g (https://www.mysite.com)
+$site_url    = "http://localhost/ColibriSM"; // E.g (https://www.mysite.com)
 ?>

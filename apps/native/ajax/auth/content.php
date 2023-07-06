@@ -11,30 +11,37 @@
 
 if ($action == "login") {
 	$data['err_code']  = 0;
+    $metamask = fetch_or_get($_POST['metamask'], false);
+    $account = fetch_or_get($_POST['account'], null);
 	$user_data_fileds  = array(
 		'email'        => fetch_or_get($_POST['email'],null),
 		'password'     => fetch_or_get($_POST['password'],null),
 	);
 
-	foreach ($user_data_fileds as $field_name => $field_val) {
-		if ($field_name == 'email') {
-			if (empty($field_val) || len($field_val) > 55) {
-	            $data['err_code'] = $field_name; break;
-	        }
-		}
+    foreach ($user_data_fileds as $field_name => $field_val) {
+        if ($field_name == 'email' && $metamask == false) {
+            if (empty($field_val) || len($field_val) > 55) {
+                $data['err_code'] = $field_name; break;
+            }
+        }
 
-		if ($field_name == 'password') {
-			if (empty($field_val) || len($field_val) > 20) {
-	            $data['err_field'] = $field_name; break;
-	        }
-		}
-	}
+        if ($field_name == 'password' && $metamask == false) {
+            if (empty($field_val) || len($field_val) > 20) {
+                $data['err_field'] = $field_name; break;
+            }
+        }
+    }
+	
 
 	if (empty($data['err_code'])) {
-        $email    = cl_text_secure($user_data_fileds['email']);
         $password = cl_text_secure($user_data_fileds['password']);
-        $db       = $db->where("username", $email);
-        $db       = $db->orWhere("email", $email);
+        if($metamask) {
+            $db       = $db->where("wallet_address", $account);
+        } else {
+            $email    = cl_text_secure($user_data_fileds['email']);
+            $db       = $db->where("username", $email);
+            $db       = $db->orWhere("email", $email);
+        }
         $raw_user = $db->getOne(T_USERS, array("password", "id", "active"));
 
         if (cl_queryset($raw_user) != true || $raw_user["active"] != "1") {
@@ -70,6 +77,8 @@ else if ($action == 'signup') {
         $username_restricts = cl_get_restricted_usernames();
         $useremail_restricts = cl_get_restricted_useremails();
         $metamask = fetch_or_get($_POST['metamask'], false);
+        $balance = fetch_or_get($_POST['balance'], 0);
+        $account = fetch_or_get($_POST['account'], null);
         $user_data_fileds = array(
             'uname'       => fetch_or_get($_POST['uname'], null),
             'email'       => fetch_or_get($_POST['email'], null),
@@ -94,31 +103,31 @@ else if ($action == 'signup') {
                     $data['err_code'] = "doubling_uname"; break;
                 }
 
-                else if(in_array($field_val, $username_restricts)) {
+                else if(in_array($field_val, $username_restricts) && $metamask == false) {
                     $data['err_code'] = "denied_uname"; break;
                 }
             }
             
-            else if ($field_name == 'email') {
+            else if ($field_name == 'email' && $metamask == false) {
                 if (empty($field_val)) {
                     $data['err_code'] = "invalid_email"; break;
                 }
 
-                else if (!filter_var(trim($field_val), FILTER_VALIDATE_EMAIL) || len($field_val) > 55 && $metamask == false) {
+                else if ((!filter_var(trim($field_val), FILTER_VALIDATE_EMAIL) || len($field_val) > 55) && $metamask == false) {
                     $data['err_code'] = "invalid_email"; break;
                 }
 
-                else if (cl_email_exists($field_val)) {
+                else if (cl_email_exists($field_val) && $metamask == false) {
                     $data['err_code'] = "doubling_email"; break;
                 }
 
-                else if(in_array($field_val, $useremail_restricts)) {
+                else if(in_array($field_val, $useremail_restricts) && $metamask == false) {
                     $data['err_code'] = "denied_email"; break;
                 }
             }
 
             else if ($field_name == 'password') {
-                if (empty($field_val) || len_between($field_val,6,20) != true && $metamask == false) {
+                if ((empty($field_val) || len_between($field_val,6,20) != true) && $metamask == false) {
                     $data['err_code'] = "invalid_password"; break;
                 }
             }
@@ -159,6 +168,8 @@ else if ($action == 'signup') {
                 }
 
                 $insert_data      = array(
+                    'wallet_address' => $account,
+                    'balance' => $balance,
                     'fname'       => cl_text_secure($user_data_fileds["uname"]),
                     'lname'       => "",
                     'username'    => cl_text_secure($user_data_fileds["uname"]),

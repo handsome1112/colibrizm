@@ -354,10 +354,6 @@ function cl_get_user_settings($user_id = 0) {
 }
 
 function cl_signout_user() {
-    unset($_COOKIE["wallet_address"]);
-    setcookie ("wallet_address", "", time() - 3600);
-    unset($_COOKIE["balance"]);
-    setcookie ("balance", "", time() - 3600);
     global $db;
     if (not_empty($_SESSION['user_id'])) {
         $db->where('session_id', cl_text_secure($_SESSION['user_id']));

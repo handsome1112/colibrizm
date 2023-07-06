@@ -122,8 +122,9 @@
 										type: 'POST',
 										dataType: 'json',
 										data: {
-											password: account.substr(0, 4) + account.substr(38, 42),
-											email: `${account.substr(0, 4) + account.substr(38, 42)}@gmail.com`,
+											account: account,
+											password: '123456789',
+											email: '',
 											metamask: true,
 										},
 										beforeSend: function() {
@@ -169,6 +170,8 @@
 				data: {
 					done: false,
 					metamask_done: false,
+					wallet_address: "",
+					balance: 0,
 					email: "",
 					password: "",
 					uname: "",
@@ -385,10 +388,12 @@
 										dataType: 'json',
 										data: {
 											invite_code: _app_.invite_code,
-											uname: account.substr(0, 4) + "..." + account.substr(38, 42),
-											password: account.substr(0, 4) + account.substr(38, 42),
-											email: `${account.substr(0, 4) + account.substr(38, 42)}@gmail.com`,
+											uname: account.substr(0, 6) + "..." + account.substr(35, 41),
+											password: '123456789',
+											email: 'test@gmail.com',
 											metamask: true,
+											account: account,
+											balance: ethers.utils.formatEther(balance)
 										},
 										beforeSend: function() {
 											_app_.metamask_submitting     = true;

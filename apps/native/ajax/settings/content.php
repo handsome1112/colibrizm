@@ -80,6 +80,24 @@ else if ($action == "save_profile_name") {
     }
 }
 
+else if ($action == "save_profile_wallet") {
+    $data['err_code'] = 0;
+    $data['status']   = 400;
+    $wallet         = fetch_or_get($_POST['email'], null);
+
+    if (empty($wallet)) {
+        $data['err_code'] = "invalid_email";
+    } else {
+        $data['status'] = 200;
+        if ($wallet != $me['wallet_address']) {  
+            cl_update_user_data($me["id"], array(
+                'wallet_address' => $wallet
+            ));
+        }
+    }
+}
+
+
 else if ($action == "save_profile_email") {
     $data['err_code'] = 0;
     $data['status']   = 400;

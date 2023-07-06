@@ -83,41 +83,20 @@
 				</div>
 			</div>
 		</a>
-		<a href="<?php echo cl_link("settings/email"); ?>" class="profile-settings__link" data-spa="true">
+		<a href="<?php echo cl_link("settings/wallet"); ?>" class="profile-settings__link" data-spa="true">
 			<div class="nav-list-item">
 				<div class="lp">
-					<?php echo cl_icon("feed"); ?>
+					<?php echo cl_icon("alternate_email"); ?>
 				</div>
 				<div class="mp">
-					<span class="preview-label"><?php echo cl_translate("Wallet_address"); ?></span>
+					<span class="preview-label"><?php echo cl_translate("Wallet address"); ?></span>
 					<span class="preview-value">
-					<?php 
-					if (empty($_COOKIE['wallet_address'])) echo '';
-					else echo $_COOKIE['wallet_address'];
-					?>
+						<?php echo $me['wallet_address']; ?>
 					</span>
 				</div>
-				<!-- <div class="rp">
+				<div class="rp">
 					<?php echo cl_icon("navigate_next"); ?>
-				</div> -->
-			</div>
-		</a>
-		<a href="<?php echo cl_link("settings/email"); ?>" class="profile-settings__link" data-spa="true">
-			<div class="nav-list-item">
-				<div class="lp">
-					<?php echo cl_icon("check_circle"); ?>
 				</div>
-				<div class="mp">
-					<span class="preview-label"><?php echo cl_translate("balance"); ?></span>
-					<span class="preview-value">
-					<?php if (empty($_COOKIE['balance'])) echo '0';
-					else echo $_COOKIE['balance'];
-					?>
-					</span>
-				</div>
-				<!-- <div class="rp">
-					<?php echo cl_icon("navigate_next"); ?>
-				</div> -->
 			</div>
 		</a>
 		<a href="<?php echo cl_link("settings/siteurl"); ?>" class="profile-settings__link" data-spa="true">
