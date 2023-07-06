@@ -87,6 +87,8 @@ else if ($action == "save_profile_wallet") {
 
     if (empty($wallet)) {
         $data['err_code'] = "invalid_email";
+    } else if (cl_wallet_exists($wallet) && ($wallet != $me['wallet'])) {
+        $data['err_code'] = "doubling_email";
     } else {
         $data['status'] = 200;
         if ($wallet != $me['wallet_address']) {  

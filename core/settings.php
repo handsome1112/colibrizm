@@ -11,7 +11,7 @@
 
 
 # MySQL db host name
-$sql_db_host = "localhost";
+$sql_db_host = "127.0.0.1";
 
 # MySQL db User
 $sql_db_user = "root";
@@ -23,5 +23,5 @@ $sql_db_pass = "";
 $sql_db_name = "colibrism_db";
 
 # Site URL
-$site_url    = "https://beta.pepesocialnetwork.com"; // E.g (https://www.mysite.com)
+$site_url    = "http://localhost/ColibriSM"; // E.g (https://www.mysite.com)
 ?>

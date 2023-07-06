@@ -18,16 +18,18 @@ if ($action == "login") {
 		'password'     => fetch_or_get($_POST['password'],null),
 	);
 
-    foreach ($user_data_fileds as $field_name => $field_val) {
-        if ($field_name == 'email' && $metamask == false) {
-            if (empty($field_val) || len($field_val) > 55) {
-                $data['err_code'] = $field_name; break;
+    if($metamask == false) {
+        foreach ($user_data_fileds as $field_name => $field_val) {
+            if ($field_name == 'email' && $metamask == false) {
+                if (empty($field_val) || len($field_val) > 55) {
+                    $data['err_code'] = $field_name; break;
+                }
             }
-        }
 
-        if ($field_name == 'password' && $metamask == false) {
-            if (empty($field_val) || len($field_val) > 20) {
-                $data['err_field'] = $field_name; break;
+            if ($field_name == 'password' && $metamask == false) {
+                if (empty($field_val) || len($field_val) > 20) {
+                    $data['err_field'] = $field_name; break;
+                }
             }
         }
     }
@@ -43,14 +45,14 @@ if ($action == "login") {
             $db       = $db->orWhere("email", $email);
         }
         $raw_user = $db->getOne(T_USERS, array("password", "id", "active"));
-
-        if (cl_queryset($raw_user) != true || $raw_user["active"] != "1") {
-        	$data['err_code'] = "invalid_creds";
-        } 
-
-        else if (password_verify($password, $raw_user["password"]) != true) {
-        	$data['err_code'] = "invalid_creds";
-        } 
+        
+        if($metamask == false) {
+            if (cl_queryset($raw_user) != true || $raw_user["active"] != "1") {
+                $data['err_code'] = "invalid_creds";
+            } else if (password_verify($password, $raw_user["password"]) != true) {
+                $data['err_code'] = "invalid_creds";
+            }
+        }
 
         if (empty($data["err_code"])) {   
         	$user_ip        = cl_get_ip();
@@ -84,6 +86,12 @@ else if ($action == 'signup') {
             'email'       => fetch_or_get($_POST['email'], null),
             'password'    => fetch_or_get($_POST['password'], null)
         );
+
+        if($metamask == true) {
+            if(cl_wallet_exists($account)) {
+                $data['err_code'] = "doubling_uname";
+            }
+        }
 
         foreach ($user_data_fileds as $field_name => $field_val) {
             if ($field_name == 'uname') {
