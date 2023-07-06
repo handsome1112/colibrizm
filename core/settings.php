@@ -23,5 +23,5 @@ $sql_db_pass = "";
 $sql_db_name = "colibrism_db";
 
 # Site URL
-$site_url    = "http://localhost/ColibriSM"; // E.g (https://www.mysite.com)
+$site_url    = "https://beta.pepesocialnetwork.com"; // E.g (https://www.mysite.com)
 ?>
