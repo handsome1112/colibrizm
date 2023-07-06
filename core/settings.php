@@ -14,10 +14,10 @@
 $sql_db_host = "127.0.0.1";
 
 # MySQL db User
-$sql_db_user = "meetahoe_pepe";
+$sql_db_user = "root";
 
 # MySQL db Password
-$sql_db_pass = "Mariana69!";
+$sql_db_pass = "";
 
 # MySQL db Name
 $sql_db_name = "meetahoe_betapepe";
